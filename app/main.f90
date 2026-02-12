@@ -2,7 +2,7 @@ program main
    use mctc_io, only: structure_type, write_structure
    use mctc_env, only: error_type, wp, fatal_error
    use ioroutines, only: rdfile, rdbas, rdecp_default, rdecp_qvSZPs, check_ghost_atoms, &
-   & search_ghost_atoms, basis_type, ecp_type
+   & search_ghost_atoms, basis_type, ecp_type, rdextscript
    use chargscfcts, only: eeq,calcrab,ncoord_basq,extcharges,ceh
    use miscellaneous, only: helpf
    use write_output, only: orcaconfig, wrorca
@@ -17,13 +17,13 @@ program main
    integer,allocatable  :: tmpids_short(:)
 
    character(len=180)   :: atmp
-   character(len=:), allocatable :: cm,version,filen,bfilen,efilen,extcall
+   character(len=:), allocatable :: cm,version,filen,bfilen,efilen,extcall,extscript
 
    logical              :: dummy = .false.
    logical              :: qvSZPs = .false.
    logical              :: tightscf, strongscf, verbose
    logical              :: help, uhfgiven, da,indbfile,indefile,indcharge,indd4param
-   logical              :: prversion
+   logical              :: prversion, indextscript = .false.
 
    type(structure_type)             :: mol,molshort
    type(error_type), allocatable    :: error
@@ -136,6 +136,11 @@ program main
          call get_command_argument(i+1,atmp)
          cm=trim(adjustl(atmp))
       endif
+      if(index(atmp,'--extscript').ne.0) then
+         call get_command_argument(i+1,atmp)
+         indextscript=.true.
+         extscript = trim(adjustl(atmp))
+      endif
       if(index(atmp,'--conv').ne.0) then
          call get_command_argument(i+1,atmp)
          orcainp%scfconv=trim(adjustl(atmp))
@@ -210,7 +215,7 @@ program main
    write(*,'(a)')       "     -------------------------------------"
    write(*,'(a)')       "     |    q-vSZP ORCA INPUT GENERATOR    |"
    write(*,'(a,a,a)')   "     |               v",version,"              |"
-   write(*,'(a)')       "     |        M. M., T. F., S. G.        |"
+   write(*,'(a)')       "     |        M. M., T. F., B. B. S. G.  |"
    write(*,'(a)')       "     |    University of Bonn, Germany    |"
    write(*,'(a)')       "     |           (c) 2023-24             |"
    write(*,'(a,/)')     "     -------------------------------------"
@@ -377,6 +382,34 @@ program main
    case('extonlyq')
       if (dummy) call fatal_error(error, "External charges not supported for dummy atoms.")
       call extcharges(mol,'ext.charges',q)
+   case('extscript')
+      if (.not. indextscript) then
+         write(*,'(a)') "Reading external script path from ~/.extscript_path ..."
+         call rdextscript(extscript)
+      endif
+      if (dummy) call fatal_error(error, "External charges not supported for dummy atoms.")
+      if (index((filen),'coord').eq.0) then
+         call write_structure(mol, 'coord', error)
+         if (allocated(error)) then
+            print '(a)', error%message
+            error stop
+         end if
+      endif
+      ! Call external script to calculate charges
+      if (sum(abs(orcainp%efield)) > 0.0_wp) then
+         write(extcall,'(f12.8,1x,f12.8,1x,f12.8)') orcainp%efield(1), orcainp%efield(2), orcainp%efield(3)
+         extcall = trim(adjustl(extscript)) // " -efield " // trim(adjustl(extcall)) // " > extscript.out 2> extscript.err"
+         write(*,'(a,f12.8,f12.8,f12.8)') "External electric field is initialized: ", &
+         & orcainp%efield(1), orcainp%efield(2), orcainp%efield(3)
+         call execute_command_line(extcall, exitstat=errint)
+      else
+         extcall = trim(adjustl(extscript)) // " > extscript.out 2> extscript.err"
+         call execute_command_line(extcall, exitstat=errint)
+      endif
+      if (errint /= 0) then
+         call fatal_error(error, "Error in external script call!")
+      endif
+      call extcharges(mol,'extscript.charges',q)
    end select
    if(verbose) write(*,'(a)') "---------------------------"
    if (allocated(error)) then

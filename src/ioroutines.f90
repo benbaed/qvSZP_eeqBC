@@ -7,7 +7,7 @@ module ioroutines
    private
 
    public :: rdfile, rdbas, rdecp_default, rdecp_qvSZPs, & 
-   & check_ghost_atoms, search_ghost_atoms, basis_type, ecp_type
+   & check_ghost_atoms, search_ghost_atoms, basis_type, ecp_type, rdextscript
 
    type :: basis_type
       integer               :: atmax ! atom index
@@ -932,5 +932,46 @@ contains
       close(myunit3)
 
    end subroutine search_ghost_atoms
+
+   subroutine rdextscript(extscript)
+      character(len=:), allocatable, intent(out) :: extscript
+      character(len=:), allocatable             :: fname, homedir
+      character(len=500)                        :: tmpstr
+      integer                                   :: myunit, char_length, ierr
+      logical                                   :: da
+
+      call get_environment_variable("HOME", length=char_length)
+      allocate(character(len=char_length) :: homedir)
+      call get_environment_variable("HOME", value=homedir, status=ierr)
+
+      if (ierr /= 0) then
+         error stop "ERROR: Could not read HOME environment variable"
+      end if
+
+      fname = trim(adjustl(homedir)) // "/.extscript_path"
+      inquire(file=fname, exist=da)
+
+      if (.not. da) then
+         print '(a)', "WARNING: External script path file not found: " // trim(fname)
+         print '(a)', "Please create this file with the path to your external script, or use --extscript flag"
+         error stop
+      end if
+
+      open(newunit=myunit, file=trim(fname), status='old', action='read', iostat=ierr)
+      if (ierr /= 0) then
+         error stop "ERROR: Could not open external script path file"
+      end if
+
+      read(myunit, '(a)', iostat=ierr) tmpstr
+      close(myunit)
+
+      if (ierr /= 0) then
+         error stop "ERROR: Could not read external script path from file"
+      end if
+
+      allocate(character(len=len_trim(tmpstr)) :: extscript)
+      extscript = trim(adjustl(tmpstr))
+
+   end subroutine rdextscript
 
 end module ioroutines

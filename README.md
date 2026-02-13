@@ -37,3 +37,13 @@ If no `--struc` file is explicitly given, `qvSZP` assumes a `coord` file.
 
 See the `-help` flag for further input possibilities.
 If you should observe instabilities with the `PModel` guess in ORCA, try to use `qvSZP` together with the `--suggestedguess` flag or provide an individual guess option with `--guess`.
+
+
+## BB added feature for charge models
+Available charge models (-cm) are
+ceh       (default)
+eeq
+ext       (reads ext.charges which must include in each line per atom: charge CN)
+extonlyq  (reads ext.charges which must include in each line per atom: charge)
+extscript (either followed by extcall to define path to external script or define path in ~/.extscript_path
+           the external script must create a file called extscript.charges which should only include the charges)

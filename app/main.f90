@@ -146,7 +146,7 @@ program main
          call get_command_argument(i+1,atmp)
          orcainp%scfconv=trim(adjustl(atmp))
       endif
-      if(index(atmp,'--d4par').ne.0) then
+      if(trim(adjustl(atmp)) == '--d4par') then
          indd4param=.true.
          call get_command_argument(i+1,atmp)
          read(atmp,*) orcainp%d4_s6
@@ -159,7 +159,7 @@ program main
          call get_command_argument(i+5,atmp)
          read(atmp,*) orcainp%d4_s9
       endif
-      if(index(atmp,'--d4file').ne.0) then
+      if(trim(adjustl(atmp)) == '--d4file') then
          indd4file=.true.
       endif
       if(index(atmp,'--efield').ne.0) then

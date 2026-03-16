@@ -16,7 +16,9 @@ contains
       write(*,'(a35,10x,a)') "--uhf <int>",       "# set number of unpaired electrons"
       write(*,'(a35,10x,a)') "--efield <x> <y> <z>","# set electric field vector"
       write(*,'(a35,10x,a)') "--outname <filename>","# set output file name. NOTE: An'.inp' suffix will be added."
-      write(*,'(a35,10x,a)') "--cm <charge model>","# set charge model. Options: 'eeq', 'ceh', 'ceh_external', 'ext', 'extonlyq', 'extscript'. DEFAULT: 'ceh'"
+      write(*,'(a35,10x,a)') "--cm <charge model>", &
+"# set charge model. Options: 'eeq', 'ceh', 'ceh_external', 'ext', " // &
+"'extonlyq', 'extscript'. DEFAULT: 'ceh'"
       write(*,'(a35,10x,a)') "--extscript <path>","# set path to external script (use with --cm extscript)"
       write(*,'(a5x,a)') " ","# If not provided, reads from ~/.extscript_path"
       write(*,'(a35,10x,a)') "--qvSZPs", &

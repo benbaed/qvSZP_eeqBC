@@ -31,6 +31,7 @@ contains
       write(*,'(a35,10x,a)') "--nososcf",         "# do not use SOSCF algorithm for SCF convergence"
       write(*,'(a35,10x,a)') "--guess <guess options>","# SCF guess options, see ORCA manual"
       write(*,'(a35,10x,a)') "--d4par <s6> <s8> <a1> <a2> <s9>","# set D4 dispersion parameters"
+      write(*,'(a35,10x,a)') "--d4file","# read D4 dispersion parameters from .d4par file"
       write(*,'(a35,10x,a)') "--polar",           "# calculate polarizability"
       write(*,'(a35,10x,a)') "--polgrad",         "# calculate polarizability gradient"
       write(*,'(a35,10x,a)') "--dipgrad",         "# calculate dipole moment gradient"

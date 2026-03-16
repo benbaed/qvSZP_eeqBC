@@ -22,7 +22,7 @@ program main
    logical              :: dummy = .false.
    logical              :: qvSZPs = .false.
    logical              :: tightscf, strongscf, verbose
-   logical              :: help, uhfgiven, da,indbfile,indefile,indcharge,indd4param
+   logical              :: help, uhfgiven, da,indbfile,indefile,indcharge,indd4param,indd4file
    logical              :: prversion, indextscript = .false.
 
    type(structure_type)             :: mol,molshort
@@ -52,6 +52,7 @@ program main
    indefile    = .false.
    indcharge   = .false.
    prversion   = .false.
+   indd4file   = .false.
 
    filen             = 'coord' ! input  filename
    orcainp%outn      = 'wb97xd4-qvszp.inp'   ! output filename
@@ -158,6 +159,9 @@ program main
          call get_command_argument(i+5,atmp)
          read(atmp,*) orcainp%d4_s9
       endif
+      if(index(atmp,'--d4file').ne.0) then
+         indd4file=.true.
+      endif
       if(index(atmp,'--efield').ne.0) then
          call get_command_argument(i+1,atmp)
          read(atmp,*) orcainp%efield(1)
@@ -198,6 +202,11 @@ program main
       !> Version
       if(index(atmp,'--version').ne.0) prversion=.true.
    enddo
+
+   if (indd4param .and. indd4file) then
+      print '(a)', "Error: --d4par and --d4file cannot be used together"
+      error stop
+   endif
 
    !> Print version
    if (prversion) then
@@ -242,6 +251,23 @@ program main
          read(myunit,*) charge
          close(myunit)
          write(*,'(a,i0,/)') "Charge read from .CHRG file: ", charge
+      endif
+   endif
+
+   if (indd4file) then
+      inquire(file='.d4par',exist=da)
+      if(da)then
+         open(newunit=myunit,file='.d4par')
+         read(myunit,*) orcainp%d4_s6
+         read(myunit,*) orcainp%d4_s8
+         read(myunit,*) orcainp%d4_a1
+         read(myunit,*) orcainp%d4_a2
+         read(myunit,*) orcainp%d4_s9
+         close(myunit)
+         write(*,'(a)') "D4 parameters read from .d4par file"
+      else
+         print '(a)', "Error: --d4file specified but .d4par file not found"
+         error stop
       endif
    endif
 

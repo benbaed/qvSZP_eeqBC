@@ -52,6 +52,7 @@ program main
    indefile    = .false.
    indcharge   = .false.
    prversion   = .false.
+   indd4param  = .false.
    indd4file   = .false.
 
    filen             = 'coord' ! input  filename
@@ -149,18 +150,19 @@ program main
       if(trim(adjustl(atmp)) == '--d4par') then
          indd4param=.true.
          call get_command_argument(i+1,atmp)
-         read(atmp,*) orcainp%d4_s6
-         call get_command_argument(i+2,atmp)
-         read(atmp,*) orcainp%d4_s8
-         call get_command_argument(i+3,atmp)
-         read(atmp,*) orcainp%d4_a1
-         call get_command_argument(i+4,atmp)
-         read(atmp,*) orcainp%d4_a2
-         call get_command_argument(i+5,atmp)
-         read(atmp,*) orcainp%d4_s9
-      endif
-      if(trim(adjustl(atmp)) == '--d4file') then
-         indd4file=.true.
+         if(trim(adjustl(atmp)) == 'd4file') then
+            indd4file=.true.
+         else
+            read(atmp,*) orcainp%d4_s6
+            call get_command_argument(i+2,atmp)
+            read(atmp,*) orcainp%d4_s8
+            call get_command_argument(i+3,atmp)
+            read(atmp,*) orcainp%d4_a1
+            call get_command_argument(i+4,atmp)
+            read(atmp,*) orcainp%d4_a2
+            call get_command_argument(i+5,atmp)
+            read(atmp,*) orcainp%d4_s9
+         endif
       endif
       if(index(atmp,'--efield').ne.0) then
          call get_command_argument(i+1,atmp)
@@ -202,11 +204,6 @@ program main
       !> Version
       if(index(atmp,'--version').ne.0) prversion=.true.
    enddo
-
-   if (indd4param .and. indd4file) then
-      print '(a)', "Error: --d4par and --d4file cannot be used together"
-      error stop
-   endif
 
    !> Print version
    if (prversion) then
